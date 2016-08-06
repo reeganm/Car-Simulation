@@ -2,7 +2,7 @@
 
 import numpy as np
 
-class Motor_c:
+class SuperCapacitor_c:
     """ Class containing model of Super Capacitor """
     
     #Constants
@@ -14,7 +14,7 @@ class Motor_c:
         
     def __init__(self,SimulationTime,TimeInterval):
         #class constructor
-        print('Car Object Created')
+        print('Super Capacitor Object Created')
         
         #Allocate RAM
         DataPoints = SimulationTime/TimeInterval

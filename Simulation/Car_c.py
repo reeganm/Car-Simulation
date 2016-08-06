@@ -2,7 +2,7 @@
 
 import numpy as np
 
-class Motor_c:
+class Car_c:
     """ Class containing model of Car """
     
     #Constants

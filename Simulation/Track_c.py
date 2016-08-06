@@ -2,7 +2,7 @@
 
 import numpy as np
 
-class Motor_c:
+class Track_c:
     """ Class containing model of Track Conditions """
     
     #Constants
@@ -19,9 +19,9 @@ class Motor_c:
     #equations
     
         
-    def __init__(self,SimulationTime,TimeInterval):
+    def __init__(self,SimulationTime,TimeInterval,TrackLength):
         #class constructor
-        print('Car Object Created')
+        print('Track Object Created')
         
         #Allocate RAM
         DataPoints = SimulationTime/TimeInterval
