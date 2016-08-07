@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import math
 
 class SuperCapacitor_c:
     """ Class containing model of Super Capacitor """
@@ -17,5 +18,4 @@ class SuperCapacitor_c:
         print('Super Capacitor Object Created')
         
         #Allocate RAM
-        DataPoints = SimulationTime/TimeInterval
-        DataPoints = int(DataPoints)        
+        DataPoints = math.floor(SimulationTime/TimeInterval)    
