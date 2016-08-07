@@ -2,6 +2,8 @@
 
 import numpy as np
 import math
+from numba import jit
+import matplotlib.pyplot as plt
 
 class Car_c:
     """ Class containing model of Car """
@@ -42,13 +44,38 @@ class Car_c:
         
         self.SimulationTime = SimulationTime
         self.Timeinterval = TimeInterval
+        self.DataPoints = math.floor(SimulationTime/TimeInterval)         
+        
+        #make time array for plotting
+        self.TimeEllapsed = np.arange(self.DataPoints)*TimeInterval
         
         #Allocate RAM
-        self.DataPoints = math.floor(SimulationTime/TimeInterval)       
         self.Acceleration = np.zeros(self.DataPoints)
         self.Speed = np.zeros(self.DataPoints)
         self.DistanceTravelled = np.zeros( self.DataPoints )
 
-
+    @jit
     def calc_AirDrag(self,AirDensity,Index):
         self.AirDrag = 0.5*self.AreodynamicDragCoefficient*self.FrontalArea*AirDensity*math.pow(self.Speed[Index],2)
+        
+    ## Plotting ##
+    def plot_DistanceTime(self):
+        plt.plot(self.TimeEllapsed, self.DistanceTravelled)
+        plt.xlabel('Time')
+        plt.ylabel('Distance (m)')
+        plt.title('Car')
+        plt.show()
+        
+    def plot_SpeedTime(self):
+        plt.plot(self.TimeEllapsed, self.Speed*3.6)
+        plt.xlabel('Time')
+        plt.ylabel('Speed (km.h)')
+        plt.title('Car')
+        plt.show()
+        
+    def plot_AccelerationTime(self):
+        plt.plot(self.TimeEllapsed, self.Acceleration)
+        plt.xlabel('Time')
+        plt.ylabel('Acceleration (m/s2)')
+        plt.title('Car')
+        plt.show()
