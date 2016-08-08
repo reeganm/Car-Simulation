@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import math
 
 from Motor_c import Motor_c
@@ -8,24 +7,32 @@ from FuelCell_c import FuelCell_c
 from Track_c import Track_c
 from Car_c import Car_c
 from SuperCapacitor_c import SuperCapacitor_c
+from Simulation import run_Simulation
 
-SimulationTime = 240 #seconds
-TimeInterval = 0.0001 #time step/integration interval #make a lot smaller than total inertia to decrease motor integration error
-TrackLength = 100 #100 meter track
+SimulationTime = 500 #seconds
+TimeInterval = 0.001 #time step/integration interval #make a lot smaller than total inertia to decrease motor speed integration error
+TrackLength = 38 # meters
 
 DataPoints = math.floor(SimulationTime/TimeInterval)
 
 
-## MOTOR ##
+#### MOTOR ####
 
 #create motor object
 motor = Motor_c(SimulationTime,TimeInterval)
-#Set Motor Constants
-motor.VelocityConstant = motor.rmp_per_V_2_rad_per_Vs(250)
-motor.WindingResistance = 0.08 #ohms
-motor.NoLoadCurrent = 2
-#motor.MaxSpeed = motor.rmp_2_rad_per_s(11100)
-motor.Inertia = 0.0000 #kg m2
+
+## Set Motor Constants ##
+#Velocity constant, Torque constant, BackEMFConstant are all related only need one https://en.wikipedia.org/wiki/Motor_constants
+motor.VelocityConstant = motor.rmp_per_V_2_rad_per_Vs(113) # rad/Vs
+motor.WindingResistance = 0.345 #ohms
+# Manufacturers reported voltage
+motor.MaxVoltage = 48 #Volts
+# max speed and maxvoltage with no load
+motor.MaxSpeed = motor.rmp_2_rad_per_s(5370) #rad/s
+#inertia of motor armature (not too important can be set to zero)
+motor.Inertia = motor.gcm2_2_kgm2(831) #kg m2
+#set to limit motor current (ie some controllers limit current)  default is 1000 Amps
+motor.MaxCurrent = 60 #Amp
 #calculate other motor parameters
 motor.calc_MissingMotorConstants()
 
@@ -40,8 +47,9 @@ fuelcell.CellArea = 250 #cm2
 fuelcell.CellResistance = 0.62
 fuelcell.Alpha = 0.6
 fuelcell.ExchangeCurrentDensity = 0.04
-fuelcell.CellOCVoltage = 1.005
+fuelcell.CellOCVoltage = 0.956 #open circuit voltage
 fuelcell.DiodeVoltageDrop = 0.7
+fuelcell.AuxCurrent = 2 #current consumed by controllers, fans etc (everything except motor)
 
 
 ## TRACK ##
@@ -63,54 +71,46 @@ supercaps = SuperCapacitor_c(SimulationTime,TimeInterval)
 #set super capacitor parameters
 
 
-## CAR ##
+#### CAR ####
 
 #create car object
 car = Car_c(SimulationTime,TimeInterval)
-#set car parameters
-car.GearRatio = 28.0
-car.GearEfficiency = 0.9
-car.GearInertia = 0
-car.Mass = 310 #kg
-car.WheelDiameter = 0.56
-car.WheelInertia = 0
-car.BearingResistance = 10 #N
-car.RollingResistanceCoefficient = 0.01
-car.AreodynamicDragCoefficient = 0.3
-car.FrontalArea = 1.2*1.67
 
-#### SIMULATION ####
+## set car parameters ##
+# NumberOfTeethDriven / NumberOfTeethDriving
+car.GearRatio = 8.0 #unitless
+# efficency of gears (based off friction etc)
+car.GearEfficiency = 0.9 # spur gears usually over 90%
+# Inertia of Gears. Not too important can be set to zero
+car.GearInertia = 0.05
+# total mass of everything
+car.Mass = 310 #kg 
+car.WheelDiameter = 0.56 # m
+# I don't have an estimate for this yet. Its effect isn't very noticible anyway (I hope)
+car.WheelInertia = 0 # kg m^2
+# Constant rolling resistance ('Bearing Resistance')
+car.BearingResistance = 10 #N #How do you estimate this?
+#https://en.wikipedia.org/wiki/Rolling_resistance
+car.RollingResistanceCoefficient = 0.01 #Unitless 
+# http://physics.info/drag/
+car.AreodynamicDragCoefficient = 0.3 # standard value for a car
+car.FrontalArea = 1.2*1.67 #m^2
 
-#initial conditions
-motor.Voltage[0] = fuelcell.calc_StackVoltage(0)
-motor.Torque[0] = motor.calc_Torque(0)
-motor.calc_Current(0)
-fuelcell.StackCurrent[0] = motor.Current[0]
-
-for n in range(1,DataPoints):
-
-    car.Speed[n] = car.Speed[n-1] + car.Acceleration[n-1] * TimeInterval
-    car.calc_AirDrag(track.AirDensity,n)
-
-    motor.Speed[n] = car.Speed[n] * car.GearRatio / car.WheelDiameter * 2
-    motor.Voltage[n] = fuelcell.calc_StackVoltage(n)
-    motor.calc_Torque(n)
-    
-    #fuelcell.StackCurrent[n] = motor.calc_Current(n)
-    motor.calc_Efficiency(n)
+run_Simulation(motor,fuelcell,car,track,supercaps,DataPoints,TimeInterval)
 
 
-    car.Acceleration[n] = (motor.Torque[n]*car.WheelDiameter/2*car.GearRatio*car.GearEfficiency-car.Mass*math.sin(track.Incline/180*np.pi)*9.81-car.AirDrag-car.RollingResistanceCoefficient-car.BearingResistance) / (car.Mass+car.WheelInertia) / (1 + ((car.GearInertia + math.pow(car.GearRatio,2)*car.GearRatio*motor.MotorInertia ) / (car.Mass + car.WheelInertia) )  )
-    if car.Acceleration[n] < 0:
-        if car.Speed[n] <= 0:
-            car.Acceleration[n] = 0
-
-    car.DistanceTravelled[n] = car.DistanceTravelled[n-1] + car.Speed[n-1]* TimeInterval
-
-    motor.Acceleration[n] = car.Acceleration[n] / car.WheelDiameter / car.GearRatio
-
+## Make Plots ##
 
 motor.plot_TorqueSpeed()
 motor.plot_PowerSpeed()
 motor.plot_EfficiencySpeed()
 motor.plot_SpeedTime()
+motor.plot_TorqueTime()
+motor.plot_CurrentTime()
+motor.plot_VoltageTime()
+
+fuelcell.plot_StackVoltageCurrent()
+fuelcell.plot_StackEfficiency()
+
+car.plot_DistanceTime()
+car.plot_SpeedTime()
