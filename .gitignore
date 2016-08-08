@@ -48,3 +48,4 @@ Temporary Items
 *.pyc
 *.spyderworkspace
 *.spyderproject
+*.bak
