@@ -52,8 +52,8 @@ class FuelCell_c:
         A = self.A
         if Index != 0:
             if self.StackCurrent[Index-1] > 0:
-                b = A*math.log(self.StackCurrent[Index-1]/(self.CellArea*self.ExchangeCurrentDensity))
-                if sum(b > 0): #sum fixes b being numpy type error
+                b = A*math.log(self.StackCurrent[Index-1]/(self.CellArea/(self.ExchangeCurrentDensity/1000))
+                if b > 0: #sum fixes b being numpy type error
                     self.StackVoltage[Index] = self.CellNumber * ( self.CellOCVoltage - self.StackCurrent[Index-1]*self.CellResistance/self.CellArea-b )
                 else:
                     self.StackVoltage[Index] = self.CellNumber * ( self.CellOCVoltage - self.StackCurrent[Index-1]*self.CellResistance/self.CellArea )

@@ -36,7 +36,7 @@ motor.calc_MissingMotorConstants()
 fuelcell = FuelCell_c(SimulationTime,TimeInterval)
 #Set FuelCell parameters
 fuelcell.CellNumber = 46
-fuelcell.CellArea = 250
+fuelcell.CellArea = 250 #cm2
 fuelcell.CellResistance = 0.62
 fuelcell.Alpha = 0.6
 fuelcell.ExchangeCurrentDensity = 0.04
