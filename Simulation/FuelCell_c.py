@@ -51,8 +51,21 @@ class FuelCell_c:
         self.StackVoltage = np.zeros(self.DataPoints)
         self.StackCurrent = np.zeros(self.DataPoints)
         self.StackEfficiency = np.zeros(self.DataPoints)
-        
-        
+		
+		CurveI = np.arange(0 , 100, 0.25)
+		CurveI = np.zeros(length(self.CurveI))
+		
+	@jit
+	def build_VoltageCurrentCurve(self):
+		A = self.RealGas * self.StackTemperature / 2 / self.Alpha / self.Faraday
+		
+		for i in range(length(self.CurveV)):
+			current = self.CurveI(i)
+			b = current / ( self.CellArea * self.ExchangeCurrentDensity / 1000)
+			if b > 0:
+				self.CurveV(i) = self.CellNumber * (self.CellOCVoltage - current*self.CellResistance/self.CellArea - A*log(b))
+			else:
+				self.CurveV(i) = self.CellNumber * (self.CellOCVoltage - current*self.CellResistance/self.CellArea)
 	@jit
 	def calc_StackCurrent(self,Current):
 		#calculate available current at specified voltage
