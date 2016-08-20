@@ -119,23 +119,20 @@ class Motor_c:
                 print('Unable to Calculate Motor Losses')
     
     @jit    
-    def calc_Torque(self,Index):
+    def calc_MotorTorqueCurrent(self,Voltage,Speed):
         #motor Torque Speed Curve
-        self.Torque[Index] = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*self.Speed[Index]+self.Voltage[Index]*self.TorqueConstant/self.WindingResistance-self.TorqueLoss
-        return(self.Torque[Index])        
-    
-    @jit
-    def calc_Current(self,Index):
+        Torque = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*Speed+Voltage*self.TorqueConstant/self.WindingResistance-self.TorqueLoss
+        
         #motor torque constant
-        self.Current[Index] = (self.Torque[Index]+self.TorqueLoss)/self.TorqueConstant;
+        Current = (Torque+self.TorqueLoss)/self.TorqueConstant;
         #limit motor current to max current
-        if self.Current[Index] > self.MaxCurrent:
-            self.Current[Index] = self.MaxCurrent
+        if Current > self.MaxCurrent:
+            Current = self.MaxCurrent
             #need to recalculate torque based off of current limit
-            self.Torque[Index] = self.Current[Index]*self.TorqueConstant-self.TorqueLoss
+            Torque = Current*self.TorqueConstant-self.TorqueLoss
         else:
             self.MaxCurrent = 60
-        return(self.Current[Index])
+        return(Torque,Current)
     
     @jit
     def calc_Efficiency(self):

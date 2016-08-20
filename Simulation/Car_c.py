@@ -55,9 +55,11 @@ class Car_c:
         self.DistanceTravelled = np.zeros( self.DataPoints )
 
     @jit
-    def calc_AirDrag(self,AirDensity,Index):
-        self.AirDrag = 0.5*self.AreodynamicDragCoefficient*self.FrontalArea*AirDensity*math.pow(self.Speed[Index],2)
+    def calc_AirDrag(self,AirDensity,Speed):
+        AirDrag = 0.5*self.AreodynamicDragCoefficient*self.FrontalArea*AirDensity*math.pow(Speed,2)
+		return(AirDrag)
         
+		
     ## Plotting ##
     def plot_DistanceTime(self):
         plt.plot(self.TimeEllapsed, self.DistanceTravelled)
