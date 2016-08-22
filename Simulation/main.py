@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
 import math
+from numba import jit
+import matplotlib.pyplot as plt
 
 from Motor_c import Motor_c
 from FuelCell_c import FuelCell_c
@@ -9,9 +12,9 @@ from Car_c import Car_c
 from SuperCapacitor_c import SuperCapacitor_c
 from Simulation import run_Simulation
 
-SimulationTime = 500 #seconds
-TimeInterval = 0.001 #time step/integration interval #make a lot smaller than total inertia to decrease motor speed integration error
-TrackLength = 38 # meters
+SimulationTime = 600 #seconds
+TimeInterval = 0.1 #time step/integration interval #make a lot smaller than total inertia to decrease motor speed integration error
+TrackLength = 3800 # meters
 
 DataPoints = math.floor(SimulationTime/TimeInterval)
 
@@ -23,19 +26,15 @@ motor = Motor_c(SimulationTime,TimeInterval)
 
 ## Set Motor Constants ##
 #Velocity constant, Torque constant, BackEMFConstant are all related only need one https://en.wikipedia.org/wiki/Motor_constants
-motor.VelocityConstant = motor.rmp_per_V_2_rad_per_Vs(113) # rad/Vs
-motor.WindingResistance = 0.345 #ohms
-# Manufacturers reported voltage
-motor.MaxVoltage = 48 #Volts
-# max speed and maxvoltage with no load
-motor.MaxSpeed = motor.rmp_2_rad_per_s(5370) #rad/s
+motor.VelocityConstant = motor.rpm_per_V_2_rad_per_Vs(250) # rad/Vs
+motor.WindingResistance = 0.08
+motor.NoLoadCurrent = 2
 #inertia of motor armature (not too important can be set to zero)
-motor.Inertia = motor.gcm2_2_kgm2(831) #kg m2
+motor.Inertia = 0 
 #set to limit motor current (ie some controllers limit current)  default is 1000 Amps
-motor.MaxCurrent = 60 #Amp
+motor.MaxCurrent = 80 #Amp
 #calculate other motor parameters
 motor.calc_MissingMotorConstants()
-
 
 ## FUELCELL ##
 
@@ -48,8 +47,10 @@ fuelcell.CellResistance = 0.62
 fuelcell.Alpha = 0.6
 fuelcell.ExchangeCurrentDensity = 0.04
 fuelcell.CellOCVoltage = 0.956 #open circuit voltage
-fuelcell.DiodeVoltageDrop = 0.7
+fuelcell.DiodeVoltageDrop = 0.5
 fuelcell.AuxCurrent = 2 #current consumed by controllers, fans etc (everything except motor)
+fuelcell.build_VoltageCurrentCurve()
+fuelcell.plot_FCCurve()
 
 
 ## TRACK ##
@@ -69,7 +70,7 @@ track.calc_AirDensity()
 #create super capacitor object
 supercaps = SuperCapacitor_c(SimulationTime,TimeInterval)
 #set super capacitor parameters
-
+supercaps.Capacitance = 19.3
 
 #### CAR ####
 
@@ -78,13 +79,13 @@ car = Car_c(SimulationTime,TimeInterval)
 
 ## set car parameters ##
 # NumberOfTeethDriven / NumberOfTeethDriving
-car.GearRatio = 8.0 #unitless
+car.GearRatio = 29 #unitless
 # efficency of gears (based off friction etc)
 car.GearEfficiency = 0.9 # spur gears usually over 90%
 # Inertia of Gears. Not too important can be set to zero
-car.GearInertia = 0.05
+car.GearInertia = 0
 # total mass of everything
-car.Mass = 310 #kg 
+car.Mass = 245 #kg 
 car.WheelDiameter = 0.56 # m
 # I don't have an estimate for this yet. Its effect isn't very noticible anyway (I hope)
 car.WheelInertia = 0 # kg m^2
@@ -111,6 +112,13 @@ motor.plot_VoltageTime()
 
 fuelcell.plot_StackVoltageCurrent()
 fuelcell.plot_StackEfficiency()
+fuelcell.plot_StackCurrentTime()
 
 car.plot_DistanceTime()
 car.plot_SpeedTime()
+car.plot_AccelerationTime()
+car.plot_Milage()
+
+
+supercaps.plot_VoltageCharge()
+supercaps.plot_ChargeTime()

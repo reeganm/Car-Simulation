@@ -106,6 +106,8 @@ class Motor_c:
         if self.WindingResistance == 0:
             if self.MotorConstant != 0:
                 self.WindingResistance = math.pow((self.VelocityConstant / self.MotorConstant),2)
+                #possible to measure aswell if torque loss is know or no load current
+                #will add later
             else:
                 print('Unable to Calculate Motor Constants')
                 
@@ -117,7 +119,8 @@ class Motor_c:
                 self.TorqueLoss = self.TorqueConstant * self.NoLoadCurrent
             else:
                 print('Unable to Calculate Motor Losses')
-    
+        if self.TorqueLoss <= 0:
+            print('Warning: Torque Loss Term Less Than Zero. Check motor Parameters!')
     @jit    
     def calc_MotorTorqueCurrent(self,Voltage,Speed):
         #motor Torque Speed Curve
@@ -146,12 +149,12 @@ class Motor_c:
 
         
     #Unit Conversions
-    def rmp_per_V_2_rad_per_Vs(self,rmp_per_V):
-        rad_per_Vs = rmp_per_V / 60 * 2 * np.pi
+    def rpm_per_V_2_rad_per_Vs(self,rpm_per_V):
+        rad_per_Vs = rpm_per_V / 60 * 2 * np.pi
         return(rad_per_Vs)
     
-    def rmp_2_rad_per_s(self,rmp):
-        rad_per_s = rmp / 60 * 2 * np.pi
+    def rpm_2_rad_per_s(self,rpm):
+        rad_per_s = rpm / 60 * 2 * np.pi
         return(rad_per_s)
 
     def gcm2_2_kgm2(self,gcm2):

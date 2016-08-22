@@ -29,7 +29,10 @@ class FuelCell_c:
     StackVoltage = ''
     StackCurrent = ''
     StackEfficiency = ''
+      
     
+    CurveI = []
+    CurveV = []
     
     DataPoints = ''
     SimulationTime = ''
@@ -52,31 +55,64 @@ class FuelCell_c:
         self.StackCurrent = np.zeros(self.DataPoints)
         self.StackEfficiency = np.zeros(self.DataPoints)
 		
-		CurveI = np.arange(0 , 100, 0.25)
-		CurveI = np.zeros(length(self.CurveI))
+        self.CurveI = np.arange(0 , 120, 0.1)
+        self.CurveV = np.zeros(len(self.CurveI))
 		
-	@jit
-	def build_VoltageCurrentCurve(self):
-		A = self.RealGas * self.StackTemperature / 2 / self.Alpha / self.Faraday
-		
-		for i in range(length(self.CurveV)):
-			current = self.CurveI(i)
-			b = current / ( self.CellArea * self.ExchangeCurrentDensity / 1000)
-			if b > 0:
-				self.CurveV(i) = self.CellNumber * (self.CellOCVoltage - current*self.CellResistance/self.CellArea - A*log(b))
-			else:
-				self.CurveV(i) = self.CellNumber * (self.CellOCVoltage - current*self.CellResistance/self.CellArea)
-	@jit
-	def calc_StackCurrent(self,Current):
-		#calculate available current at specified voltage
-		
-		return(Current)
-		
+  
+    @jit
+    def build_VoltageCurrentCurve(self):
+        A = self.RealGas * self.StackTemperature / 2 / self.Alpha / self.Faraday
+
+        for i in range(len(self.CurveV)):
+            current = self.CurveI[i]
+            b = current / ( self.CellArea * self.ExchangeCurrentDensity / 1000)
+            if b > 0:
+                self.CurveV[i] = self.CellNumber * (self.CellOCVoltage - current*self.CellResistance/self.CellArea - A*np.log(b))
+            else:
+                self.CurveV[i] = self.CellNumber * (self.CellOCVoltage - current*self.CellResistance/self.CellArea)
+                
+                
+    @jit
+    def calc_StackCurrent(self,Voltage):
+        #calculate available current at specified voltage
+        index = (self.CurveV > Voltage).argmin()
+        #interpolation
+        V1 = self.CurveV[index-1]
+        V2 = self.CurveV[index]
+        
+        I1 = self.CurveI[index-1]
+        I2 = self.CurveI[index]
+        
+        Current = I1 + (I2-I1)/(V2-V1)*(Voltage-V1)
+        if Current > 120:
+            print('Warning: FuelCell Current Outside of Interpolation Range')
+        return(Current)
+    
+    @jit    
+    def calc_StackVoltage(self,Current):
+        #calculates stack voltage based off of current draw
+        
+        A = self.RealGas * self.StackTemperature / 2 / self.Alpha / self.Faraday
+
+        b = Current / ( self.CellArea * self.ExchangeCurrentDensity / 1000)
+        if b > 0:
+            Voltage = self.CellNumber * (self.CellOCVoltage - Current*self.CellResistance/self.CellArea - A*np.log(b))
+        else:
+            Voltage = self.CellNumber * (self.CellOCVoltage - Current*self.CellResistance/self.CellArea)
+        return(Voltage)        
+    
     @jit
     def calc_StackEfficiency(self):
         self.StackEfficiency = self.StackVoltage / self.CellNumber / self.TheoreticalCellVoltage
-        
+    
     #Plotting
+    def plot_FCCurve(self):
+        plt.plot( self.CurveI, self.CurveV )
+        plt.xlabel('Stack Current')
+        plt.ylabel('Stack Voltage')
+        plt.title('Fuel Cell curve')
+        plt.show()
+        
     def plot_StackVoltageCurrent(self):
         plt.plot( self.StackCurrent, self.StackVoltage )
         plt.xlabel('Stack Current (A)')
@@ -90,3 +126,11 @@ class FuelCell_c:
         plt.ylabel('Stack Efficiency')
         plt.title('FuelCell')
         plt.show()
+        
+    def plot_StackCurrentTime(self):
+        plt.plot(self.TimeEllapsed,self.StackCurrent)
+        plt.xlabel('Time')
+        plt.ylabel('Stack Current')
+        plt.title('Fuel Cell')
+        plt.show()
+        

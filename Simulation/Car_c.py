@@ -34,6 +34,8 @@ class Car_c:
     Acceleration = ''
     Speed = ''
     DistanceTravelled = ''
+    AirDrag = ''    
+    Milage = ''    
     
     #equations
     
@@ -53,11 +55,12 @@ class Car_c:
         self.Acceleration = np.zeros(self.DataPoints)
         self.Speed = np.zeros(self.DataPoints)
         self.DistanceTravelled = np.zeros( self.DataPoints )
+        self.AirDrag = np.zeros( self.DataPoints )
 
     @jit
     def calc_AirDrag(self,AirDensity,Speed):
         AirDrag = 0.5*self.AreodynamicDragCoefficient*self.FrontalArea*AirDensity*math.pow(Speed,2)
-		return(AirDrag)
+        return(AirDrag)
         
 		
     ## Plotting ##
@@ -81,3 +84,12 @@ class Car_c:
         plt.ylabel('Acceleration (m/s2)')
         plt.title('Car')
         plt.show()
+        
+    def plot_Milage(self):
+        plt.plot(self.TimeEllapsed, self.Milage)
+        plt.xlabel('Time')
+        plt.ylabel('Instantaneous Milage Mile/Gallon')
+        plt.title('Milage')
+        plt.show()
+        
+        
