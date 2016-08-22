@@ -29,7 +29,9 @@ class FuelCell_c:
     StackVoltage = ''
     StackCurrent = ''
     StackEfficiency = ''
-      
+    StackPowerOut = ''
+    StackEnergyProduced = ''
+    
     
     CurveI = []
     CurveV = []
@@ -54,7 +56,9 @@ class FuelCell_c:
         self.StackVoltage = np.zeros(self.DataPoints)
         self.StackCurrent = np.zeros(self.DataPoints)
         self.StackEfficiency = np.zeros(self.DataPoints)
-		
+        self.StackPowerOut = np.zeros(self.DataPoints)        
+        self.StackEnergyProduced = np.zeros(self.DataPoints)
+        
         self.CurveI = np.arange(0 , 120, 0.1)
         self.CurveV = np.zeros(len(self.CurveI))
 		
@@ -84,8 +88,13 @@ class FuelCell_c:
         I2 = self.CurveI[index]
         
         Current = I1 + (I2-I1)/(V2-V1)*(Voltage-V1)
+        
+        if Current < 0:
+            Current = 0
+            
         if Current > 120:
             print('Warning: FuelCell Current Outside of Interpolation Range')
+            
         return(Current)
     
     @jit    
@@ -104,6 +113,11 @@ class FuelCell_c:
     @jit
     def calc_StackEfficiency(self):
         self.StackEfficiency = self.StackVoltage / self.CellNumber / self.TheoreticalCellVoltage
+        
+    @jit 
+    def calc_StackPowerOut(self):
+        self.StackPowerOut = self.StackVoltage * self.StackCurrent
+    
     
     #Plotting
     def plot_FCCurve(self):

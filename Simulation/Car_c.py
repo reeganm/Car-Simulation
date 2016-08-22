@@ -92,4 +92,10 @@ class Car_c:
         plt.title('Milage')
         plt.show()
         
+    def plot_Drag(self):
+        plt.plot(self.TimeEllapsed,self.AirDrag)
+        plt.xlabel('Time (S)')
+        plt.ylabel('Drag (N)')
+        plt.title('Air Drag')
+        plt.show()
         

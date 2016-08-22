@@ -19,7 +19,9 @@ class SuperCapacitor_c:
     TimeEllapsed = [];
     Charge = [];
     Voltage =[];
-	
+    Current = [];
+    PowerOut = [];
+    
     #equations
     
         
@@ -28,7 +30,7 @@ class SuperCapacitor_c:
         print('Super Capacitor Object Created')
         
         self.SimulationTime = SimulationTime
-        self.Timeinterval = TimeInterval
+        self.TimeInterval = TimeInterval
         self.DataPoints = math.floor(SimulationTime/TimeInterval)         
         
         #make time array for plotting
@@ -36,7 +38,9 @@ class SuperCapacitor_c:
 		
         self.Charge = np.zeros(self.DataPoints)
         self.Voltage = np.zeros(self.DataPoints)
-	
+        self.Current = np.zeros(self.DataPoints)
+        self.PowerOut = np.zeros(self.DataPoints)
+ 
     @jit
     def DrainCaps(self,CurrentCharge,Current,TimeInterval):
         Charge = CurrentCharge - Current*TimeInterval
@@ -51,7 +55,13 @@ class SuperCapacitor_c:
     def calc_Charge(self,Voltage):
         Charge = Voltage * self.Capacitance
         return(Charge)
-        
+
+    def calc_Current(self):
+        self.Current[1:(self.DataPoints)] = -np.diff(self.Voltage)*self.Capacitance/self.TimeInterval
+    
+    def calc_PowerOut(self):
+        self.PowerOut = self.Voltage * self.Current
+
     #plotting
     def plot_VoltageCharge(self):
         plt.plot(self.Charge,self.Voltage)
@@ -65,4 +75,10 @@ class SuperCapacitor_c:
         plt.xlabel('Time')
         plt.ylabel('Charge')
         plt.title('SuperCaps')
+        plt.show()
+        
+    def plot_CurrentTime(self):
+        plt.plot(self.TimeEllapsed,self.Current)
+        plt.xlabel('Times (S)')
+        plt.ylabel('Current (Amps)')
         plt.show()

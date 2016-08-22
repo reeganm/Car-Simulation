@@ -28,8 +28,8 @@ def run_Simulation(motor,fuelcell,car,track,supercap,DataPoints,TimeInterval):
         
         motor.Torque[n],motor.Current[n] = motor.calc_MotorTorqueCurrent(motor.Voltage[n-1],motor.Speed[n-1])
         
-        #motor current drains caps
-        supercap.Charge[n] = supercap.DrainCaps(supercap.Charge[n-1],motor.Current[n],TimeInterval)
+        #motor and Aux  drains caps
+        supercap.Charge[n] = supercap.DrainCaps(supercap.Charge[n-1],motor.Current[n]+fuelcell.AuxCurrent,TimeInterval)
                 
         #fuel cell supplies caps
         fuelcell.StackCurrent[n] = fuelcell.calc_StackCurrent(fuelcell.StackVoltage[n-1])
@@ -46,20 +46,44 @@ def run_Simulation(motor,fuelcell,car,track,supercap,DataPoints,TimeInterval):
         car.Acceleration[n] = (motor.Torque[n]*car.WheelDiameter/2*car.GearRatio*car.GearEfficiency-car.Mass*math.sin(track.Incline/180*np.pi)*9.81-car.AirDrag[n]-car.RollingResistanceCoefficient-car.BearingResistance) / (car.Mass+car.WheelInertia) / (1 + ((car.GearInertia + math.pow(car.GearRatio,2)*car.GearRatio*motor.MotorInertia ) / (car.Mass + car.WheelInertia) )  )
         #stop car from moving backwards if oposing forces are too high
         if car.Acceleration[n] < 0:
-            car.Acceleration[n] = 0    
-        
+            if car.Speed[n] <= 0:
+                car.Acceleration[n] = 0    
+                car.Speed[n] = 0
         car.DistanceTravelled[n] = car.DistanceTravelled[n-1] + car.Speed[n-1]*TimeInterval
         
+        if motor.TimeEllapsed[n] > 600:
+            motor.Voltage[n] = 0
+
+            
         
         
     ## These calculations can be vectorized instead of being in for loop ##
     
     #calculate motor efficiency curve
     motor.calc_Efficiency()
+    
+    #fuelcell power output
+    fuelcell.calc_StackPowerOut()
     #calculate fuelcell efficiency curve
     fuelcell.calc_StackEfficiency()
-
+    
+    #super capacitor current
+    supercap.calc_Current()    
+    supercap.calc_PowerOut()    
+    
     #instantaneous driving efficiency -> power into motor vs speed
     car.Milage = car.Speed  / (fuelcell.CellNumber*fuelcell.TheoreticalCellVoltage*fuelcell.StackCurrent / 1000) * 33.7 #  mile/per gallon (33.7 kWhr in 1 Gallon. 3.6 MJ in one kWhr)
     
+    
+## Car Performance Plots ##
+def plot_PowerCurves(fuelcell,motor,supercaps):
+    plt.plot(fuelcell.TimeEllapsed,fuelcell.StackPowerOut,label='FuelCell')
+    plt.plot(motor.TimeEllapsed,motor.PowerIn,label='MotorIn')
+    plt.plot(motor.TimeEllapsed,motor.PowerOut,label='MotorOut')
+    plt.plot(supercaps.TimeEllapsed,supercaps.PowerOut,label='SuperCaps')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Power (W)')
+    plt.title('Power Time Series Comparison')
+    plt.legend()
+    plt.show()
     

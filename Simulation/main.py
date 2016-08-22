@@ -10,10 +10,11 @@ from FuelCell_c import FuelCell_c
 from Track_c import Track_c
 from Car_c import Car_c
 from SuperCapacitor_c import SuperCapacitor_c
-from Simulation import run_Simulation
+import Simulation
 
-SimulationTime = 600 #seconds
-TimeInterval = 0.1 #time step/integration interval #make a lot smaller than total inertia to decrease motor speed integration error
+
+SimulationTime = 1000 #seconds
+TimeInterval = 0.05 #time step/integration interval #make a lot smaller than total inertia to decrease motor speed integration error
 TrackLength = 3800 # meters
 
 DataPoints = math.floor(SimulationTime/TimeInterval)
@@ -32,9 +33,11 @@ motor.NoLoadCurrent = 2
 #inertia of motor armature (not too important can be set to zero)
 motor.Inertia = 0 
 #set to limit motor current (ie some controllers limit current)  default is 1000 Amps
-motor.MaxCurrent = 80 #Amp
+motor.MaxCurrent = 60 #Amp
 #calculate other motor parameters
 motor.calc_MissingMotorConstants()
+motor.plot_TorqueSpeedCurve()
+
 
 ## FUELCELL ##
 
@@ -97,7 +100,7 @@ car.RollingResistanceCoefficient = 0.01 #Unitless
 car.AreodynamicDragCoefficient = 0.3 # standard value for a car
 car.FrontalArea = 1.2*1.67 #m^2
 
-run_Simulation(motor,fuelcell,car,track,supercaps,DataPoints,TimeInterval)
+Simulation.run_Simulation(motor,fuelcell,car,track,supercaps,DataPoints,TimeInterval)
 
 
 ## Make Plots ##
@@ -118,7 +121,10 @@ car.plot_DistanceTime()
 car.plot_SpeedTime()
 car.plot_AccelerationTime()
 car.plot_Milage()
-
+car.plot_Drag()
 
 supercaps.plot_VoltageCharge()
 supercaps.plot_ChargeTime()
+supercaps.plot_CurrentTime()
+
+Simulation.plot_PowerCurves(fuelcell,motor,supercaps)

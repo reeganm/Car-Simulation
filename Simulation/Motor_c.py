@@ -123,8 +123,19 @@ class Motor_c:
             print('Warning: Torque Loss Term Less Than Zero. Check motor Parameters!')
     @jit    
     def calc_MotorTorqueCurrent(self,Voltage,Speed):
+        
+        #assume throttle shifts curve left (decreases speed) which also results in a torque shift
+        #solve for max speed (speed at zero torque)
+        ms = (self.TorqueLoss-Voltage*self.TorqueConstant/self.WindingResistance)/(-1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance)
+        #scale by throttle
+        s = ms * 100/100;
+        #shift in max speed
+        shift = ms - s
+        #translate to a torque shift
+        shift = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*shift
+        
         #motor Torque Speed Curve
-        Torque = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*Speed+Voltage*self.TorqueConstant/self.WindingResistance-self.TorqueLoss
+        Torque = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*Speed+Voltage*self.TorqueConstant/self.WindingResistance-self.TorqueLoss-shift
         
         #motor torque constant
         Current = (Torque+self.TorqueLoss)/self.TorqueConstant;
@@ -132,9 +143,12 @@ class Motor_c:
         if Current > self.MaxCurrent:
             Current = self.MaxCurrent
             #need to recalculate torque based off of current limit
-            Torque = Current*self.TorqueConstant-self.TorqueLoss
-        else:
-            self.MaxCurrent = 60
+            Torque = Current*self.TorqueConstant-self.TorqueLoss-shift
+        
+        if Current < 0:
+            Current = 0
+            Torque = 0
+            
         return(Torque,Current)
     
     @jit
@@ -162,6 +176,19 @@ class Motor_c:
         return(kgm2)
 
     #Plotting
+    def plot_TorqueSpeedCurve(self):
+        ms = (-36*self.TorqueConstant/self.WindingResistance)/(-1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance)
+        speed = np.arange(0,ms,1)
+        Torque1 = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*speed+36*self.TorqueConstant/self.WindingResistance
+        Torque2 = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*speed+36*self.TorqueConstant/self.WindingResistance-self.TorqueLoss
+        plt.plot(speed,Torque1,label='Theoretical')
+        plt.plot(speed,Torque2,label='With Losses')
+        plt.title('Motor Curve at 36 V')
+        plt.xlabel('Speed (rad/s)')
+        plt.ylabel('Torque (Nm)')
+        plt.legend()
+        plt.show()
+        
     def plot_TorqueSpeed(self):
         plt.plot( self.Speed, self.Torque )
         plt.xlabel('Speed (rad/s)')
