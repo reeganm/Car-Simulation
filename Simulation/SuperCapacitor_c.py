@@ -57,7 +57,7 @@ class SuperCapacitor_c:
         return(Charge)
 
     def calc_Current(self):
-        self.Current[1:(self.DataPoints)] = -np.diff(self.Voltage)*self.Capacitance/self.TimeInterval
+        self.Current[1:] = -np.diff(self.Voltage)*self.Capacitance/self.TimeInterval
     
     def calc_PowerOut(self):
         self.PowerOut = self.Voltage * self.Current

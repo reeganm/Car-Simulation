@@ -31,7 +31,7 @@ class FuelCell_c:
     StackEfficiency = ''
     StackPowerOut = ''
     StackEnergyProduced = ''
-    
+    StackEnergyConsumed = ''
     
     CurveI = []
     CurveV = []
@@ -58,6 +58,7 @@ class FuelCell_c:
         self.StackEfficiency = np.zeros(self.DataPoints)
         self.StackPowerOut = np.zeros(self.DataPoints)        
         self.StackEnergyProduced = np.zeros(self.DataPoints)
+        self.StackEnergyConsumed = np.zeros(self.DataPoints)
         
         self.CurveI = np.arange(0 , 120, 0.1)
         self.CurveV = np.zeros(len(self.CurveI))
@@ -118,6 +119,15 @@ class FuelCell_c:
     def calc_StackPowerOut(self):
         self.StackPowerOut = self.StackVoltage * self.StackCurrent
     
+    @jit 
+    def calc_StackEnergyProduced(self,Voltage,Current,Time):
+        StackEnergyProduced = Voltage*Current*Time
+        return(StackEnergyProduced)
+        
+    @jit 
+    def calc_StackEnergyConsumed(self,Current,Time):
+        StackEnergyProduced = self.TheoreticalCellVoltage*self.CellNumber*Current*Time
+        return(StackEnergyProduced)
     
     #Plotting
     def plot_FCCurve(self):

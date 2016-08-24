@@ -121,33 +121,30 @@ class Motor_c:
                 print('Unable to Calculate Motor Losses')
         if self.TorqueLoss <= 0:
             print('Warning: Torque Loss Term Less Than Zero. Check motor Parameters!')
+    
     @jit    
-    def calc_MotorTorqueCurrent(self,Voltage,Speed):
-        
-        #assume throttle shifts curve left (decreases speed) which also results in a torque shift
-        #solve for max speed (speed at zero torque)
-        ms = (self.TorqueLoss-Voltage*self.TorqueConstant/self.WindingResistance)/(-1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance)
-        #scale by throttle
-        s = ms * 100/100;
-        #shift in max speed
-        shift = ms - s
-        #translate to a torque shift
-        shift = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*shift
-        
-        #motor Torque Speed Curve
-        Torque = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*Speed+Voltage*self.TorqueConstant/self.WindingResistance-self.TorqueLoss-shift
-        
-        #motor torque constant
-        Current = (Torque+self.TorqueLoss)/self.TorqueConstant;
-        #limit motor current to max current
-        if Current > self.MaxCurrent:
-            Current = self.MaxCurrent
-            #need to recalculate torque based off of current limit
-            Torque = Current*self.TorqueConstant-self.TorqueLoss-shift
-        
-        if Current < 0:
-            Current = 0
+    def calc_MotorTorqueCurrent(self,Voltage,Speed,Throttle):
+        if Throttle:
+            #motor Torque Speed Curve
+            Torque = -1*self.BackEMFConstant*self.TorqueConstant/self.WindingResistance*Speed+Voltage*self.TorqueConstant/self.WindingResistance-self.TorqueLoss
+            
+            #motor torque constant
+            Current = (Torque+self.TorqueLoss)/self.TorqueConstant;
+            #limit motor current to max current
+            if Current > self.MaxCurrent:
+                Current = self.MaxCurrent
+                #need to recalculate torque based off of current limit
+                Torque = Current*self.TorqueConstant-self.TorqueLoss
+                
+                if Current < 0:
+                    Current = 0
+                    Torque = 0
+            if Current < 0:
+                Current = 0
+                Torque = 0
+        else:
             Torque = 0
+            Current = 0
             
         return(Torque,Current)
     

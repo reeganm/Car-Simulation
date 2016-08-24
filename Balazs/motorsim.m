@@ -83,7 +83,7 @@ k_gear=28; %gearing ratio
 eff_diff=90; %differential efficiency, in %
 
 %SIMULATION PARAMETERS
-tstep=0.0001; %time step, in seconds
+tstep=0.05; %time step, in seconds
 tstop=120; %stop time, in seconds
 errormax=0.01; %maximum error in node currents, in A
 makeplots=1; %should the script generate plots?

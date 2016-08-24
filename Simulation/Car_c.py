@@ -86,10 +86,15 @@ class Car_c:
         plt.show()
         
     def plot_Milage(self):
-        plt.plot(self.TimeEllapsed, self.Milage)
+        plt.plot(self.TimeEllapsed, self.InstantaneousMilage)
         plt.xlabel('Time')
-        plt.ylabel('Instantaneous Milage Mile/Gallon')
-        plt.title('Milage')
+        plt.ylabel('Milage km/kwh')
+        plt.title('Instantaneous Milage')
+        plt.show()
+        plt.plot(self.TimeEllapsed, self.AverageMilage)
+        plt.xlabel('Time')
+        plt.ylabel('Milage km/kwh')
+        plt.title('Average Milage')
         plt.show()
         
     def plot_Drag(self):

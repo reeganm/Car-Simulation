@@ -13,9 +13,9 @@ from SuperCapacitor_c import SuperCapacitor_c
 import Simulation
 
 
-SimulationTime = 1000 #seconds
-TimeInterval = 0.05 #time step/integration interval #make a lot smaller than total inertia to decrease motor speed integration error
-TrackLength = 3800 # meters
+SimulationTime = 600 #seconds
+TimeInterval = 0.01 #time step/integration interval #make a lot smaller than total inertia to decrease motor speed integration error
+TrackLength = 4500 # meters
 
 DataPoints = math.floor(SimulationTime/TimeInterval)
 
@@ -59,9 +59,23 @@ fuelcell.plot_FCCurve()
 ## TRACK ##
 
 #create track object
-track = Track_c(SimulationTime,TimeInterval)
+track = Track_c(SimulationTime,TimeInterval,TrackLength)
 #set track parameters
-track.Incline = 0 #deg
+track.Incline[1:500] = 0 #deg
+track.Incline[500:750] = 5
+track.Incline[750:1000] = -5
+track.Incline[1000:1250] = 5
+track.Incline[1250:1500] = -5
+track.Incline[1500:1750] = 5
+track.Incline[1750:2000] = -5
+track.Incline[2000:2250] = 0
+track.Incline[2500:2750] = 5
+track.Incline[2750:3000] = -5
+track.Incline[3000:3500] = 5
+track.Incline[3500:4000] = -5
+track.Incline[4000:4500] = 0
+track.smoothtrack(5)
+track.plot_Profile()
 track.RelativeHumidity = 50 #%
 track.Temperature = 30 #Celcius
 track.AirPressure = 101 #kPa
