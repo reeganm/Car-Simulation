@@ -45,11 +45,11 @@ motor.plot_TorqueSpeedCurve()
 fuelcell = FuelCell_c(SimulationTime,TimeInterval)
 #Set FuelCell parameters
 fuelcell.CellNumber = 46
-fuelcell.CellArea = 250 #cm2
-fuelcell.CellResistance = 0.62
-fuelcell.Alpha = 0.6
+fuelcell.CellArea = 145 #cm2
+fuelcell.CellResistance = 0.36
+fuelcell.Alpha = 0.45
 fuelcell.ExchangeCurrentDensity = 0.04
-fuelcell.CellOCVoltage = 0.956 #open circuit voltage
+fuelcell.CellOCVoltage = 1.02 #open circuit voltage
 fuelcell.DiodeVoltageDrop = 0.5
 fuelcell.AuxCurrent = 2 #current consumed by controllers, fans etc (everything except motor)
 fuelcell.build_VoltageCurrentCurve()
